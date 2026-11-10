@@ -1,0 +1,419 @@
+{
+    "name": "Empty integration",
+    "flow": [
+        {
+            "id": 1,
+            "module": "builtin:BasicFeeder",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+                "array": "{{split(\"https://news.google.com/rss/search?q=\" + data + \"+OR+\" + données + \"+OR+\" + Power + BI + \"&hl=fr&gl=FR&ceid=FR:fr,https://www.lebigdata.fr/feed,https://towardsdatascience.com/feed,https://www.kdnuggets.com/feed,https://www.sqlbi.com/feed/,https://flowingdata.com/feed,https://www.storytellingwithdata.com/blog?format=rss,https://www.analyticsvidhya.com/feed/\"; \",\")}}"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                },
+                "setupValidation": {
+                    "version": 1,
+                    "configuration": "2e643cdfc6f29258",
+                    "result": {
+                        "valid": true,
+                        "fields": []
+                    }
+                },
+                "restore": {
+                    "expect": {
+                        "array": {
+                            "mode": "edit"
+                        }
+                    }
+                },
+                "expect": [
+                    {
+                        "mode": "edit",
+                        "name": "array",
+                        "spec": [],
+                        "type": "array",
+                        "label": "Array"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 2,
+            "module": "rss:ActionReadArticles",
+            "version": 4,
+            "parameters": {
+                "include": []
+            },
+            "mapper": {
+                "url": "{{1.value}}",
+                "username": "",
+                "password": "",
+                "filterDateFrom": "{{addDays(now; -7)}}",
+                "filterDateTo": "",
+                "maxResults": "20",
+                "gzip": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                },
+                "setupValidation": {
+                    "version": 1,
+                    "configuration": "81beb9099de38428",
+                    "result": {
+                        "valid": true,
+                        "fields": []
+                    }
+                },
+                "restore": {},
+                "parameters": [
+                    {
+                        "name": "include",
+                        "type": "select",
+                        "label": "Process RSS fields",
+                        "multiple": true,
+                        "validate": {
+                            "enum": [
+                                "google-merchant-center",
+                                "itunes"
+                            ]
+                        }
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "url",
+                        "type": "url",
+                        "label": "URL",
+                        "required": true
+                    },
+                    {
+                        "name": "username",
+                        "type": "text",
+                        "label": "User name"
+                    },
+                    {
+                        "name": "password",
+                        "type": "password",
+                        "label": "Password"
+                    },
+                    {
+                        "name": "filterDateFrom",
+                        "type": "date",
+                        "label": "Date from"
+                    },
+                    {
+                        "name": "filterDateTo",
+                        "type": "date",
+                        "label": "Date to "
+                    },
+                    {
+                        "name": "maxResults",
+                        "type": "number",
+                        "label": "Maximum number of returned items",
+                        "required": true
+                    },
+                    {
+                        "name": "gzip",
+                        "type": "boolean",
+                        "label": "Request compressed content",
+                        "required": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 13,
+            "module": "google-sheets:addRow",
+            "version": 2,
+            "parameters": {
+                "__IMTCONN__": 12896620
+            },
+            "filter": {
+                "name": "Mots-clés data",
+                "conditions": [
+                    [
+                        {
+                            "a": "{{2.rssFields.title}}",
+                            "o": "text:contain:ci",
+                            "b": "analyst"
+                        }
+                    ],
+                    [
+                        {
+                            "a": "{{2.rssFields.title}}",
+                            "o": "text:contain:ci",
+                            "b": "tableau de bord"
+                        }
+                    ],
+                    [
+                        {
+                            "a": "{{2.rssFields.title}}",
+                            "o": "text:contain:ci",
+                            "b": "SQL"
+                        }
+                    ],
+                    [
+                        {
+                            "a": "{{2.rssFields.title}}",
+                            "o": "text:contain:ci",
+                            "b": "dashboard"
+                        }
+                    ]
+                ]
+            },
+            "mapper": {
+                "mode": "select",
+                "insertUnformatted": false,
+                "valueInputOption": "USER_ENTERED",
+                "insertDataOption": "INSERT_ROWS",
+                "from": "drive",
+                "spreadsheetId": "/1x3m1gNu7mU4CZzwVRobLtOM7APjJRuCqI-KYu3p2Rjo",
+                "sheetId": "Feuille 1 ",
+                "includesHeaders": true,
+                "useColumnHeaders": true,
+                "values": {
+                    "date_collecte": "{{formatDate(now; \"YYYY-MM-DD\r\nHH:mm\")}}",
+                    "source": "{{ifempty(2.rssFields.source; 1.value)}}",
+                    "titre ": "{{2.rssFields.title}}",
+                    "lien": "{{2.rssFields.link}}",
+                    "date_publication": "{{formatDate(2.dateCreated; \"YYYY-MM-DD\")}}",
+                    "resume": "{{substring(stripHTML(2.description); 0; 300)}}"
+                }
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0
+                },
+                "setupValidation": {
+                    "version": 1,
+                    "configuration": "7b74df744db215bf",
+                    "result": {
+                        "valid": true,
+                        "fields": []
+                    }
+                },
+                "restore": {
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "label": "Taima's Google connection (taimaaouissi@gmail.com)",
+                            "data": {
+                                "scoped": "true",
+                                "connection": "google"
+                            }
+                        }
+                    },
+                    "expect": {
+                        "mode": {
+                            "label": "Search by path"
+                        },
+                        "insertUnformatted": {
+                            "mode": "chose"
+                        },
+                        "valueInputOption": {
+                            "mode": "chose",
+                            "label": "User entered"
+                        },
+                        "insertDataOption": {
+                            "mode": "chose",
+                            "label": "Insert rows"
+                        },
+                        "from": {
+                            "label": "My Drive"
+                        },
+                        "spreadsheetId": {
+                            "path": [
+                                "Veille Data RSS"
+                            ]
+                        },
+                        "sheetId": {
+                            "label": "Feuille 1 "
+                        },
+                        "includesHeaders": {
+                            "label": "Yes"
+                        },
+                        "useColumnHeaders": {
+                            "label": "Yes"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:google",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "mode",
+                        "type": "select",
+                        "label": "Search Method",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "select",
+                                "fromAll",
+                                "map"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "insertUnformatted",
+                        "type": "boolean",
+                        "label": "Unformatted",
+                        "required": true
+                    },
+                    {
+                        "name": "valueInputOption",
+                        "type": "select",
+                        "label": "Value input option",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "USER_ENTERED",
+                                "RAW"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "insertDataOption",
+                        "type": "select",
+                        "label": "Insert data option",
+                        "validate": {
+                            "enum": [
+                                "INSERT_ROWS",
+                                "OVERWRITE"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "type": "select",
+                        "label": "Drive",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "drive",
+                                "share",
+                                "team"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "spreadsheetId",
+                        "type": "file",
+                        "label": "Spreadsheet Name",
+                        "required": true
+                    },
+                    {
+                        "name": "sheetId",
+                        "type": "select",
+                        "label": "Sheet Name",
+                        "required": true
+                    },
+                    {
+                        "name": "includesHeaders",
+                        "type": "select",
+                        "label": "Table contains headers",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                true,
+                                false
+                            ]
+                        }
+                    },
+                    {
+                        "name": "useColumnHeaders",
+                        "type": "select",
+                        "label": "Use column headers as IDs of the columns",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                true,
+                                false
+                            ]
+                        }
+                    },
+                    {
+                        "name": "values",
+                        "type": "collection",
+                        "label": "Values in columns",
+                        "metadata": [
+                            [
+                                [
+                                    "date_collecte",
+                                    "source",
+                                    "titre ",
+                                    "lien",
+                                    "date_publication",
+                                    "resume"
+                                ]
+                            ]
+                        ],
+                        "spec": [
+                            {
+                                "name": "date_collecte",
+                                "type": "text",
+                                "label": "date_collecte (A)"
+                            },
+                            {
+                                "name": "source",
+                                "type": "text",
+                                "label": "source (B)"
+                            },
+                            {
+                                "name": "titre ",
+                                "type": "text",
+                                "label": "titre  (C)"
+                            },
+                            {
+                                "name": "lien",
+                                "type": "text",
+                                "label": "lien (D)"
+                            },
+                            {
+                                "name": "date_publication",
+                                "type": "text",
+                                "label": "date_publication (E)"
+                            },
+                            {
+                                "name": "resume",
+                                "type": "text",
+                                "label": "resume (F)"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu1.make.com",
+        "notes": []
+    }
+}
